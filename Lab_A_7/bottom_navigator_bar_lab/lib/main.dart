@@ -1,30 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'screen1.dart';
 import 'screen2.dart';
 import 'screen3.dart';
 import 'screen4.dart';
+import 'tab_model.dart';
 
 void main() {
-  runApp(const MaterialApp(home: BottomNavLab()));
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => TabModel(),
+      child: const MaterialApp(home: BottomNavLab()),
+    ),
+  );
 }
 
-class BottomNavLab extends StatefulWidget {
+class BottomNavLab extends StatelessWidget {
   const BottomNavLab({super.key});
-
-  @override
-  State<BottomNavLab> createState() => _BottomNavLabState();
-}
-
-class _BottomNavLabState extends State<BottomNavLab> {
-  int currentIndex = 0;
-
-  final List<Widget> screens = const [
-    Screen1(),
-    Screen2(),
-    Screen3(),
-    Screen4(),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -34,33 +27,55 @@ class _BottomNavLabState extends State<BottomNavLab> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
       ),
+      body: const _TabBody(),
+      bottomNavigationBar: const _TabNavBar(),
+    );
+  }
+}
 
-      body: screens[currentIndex],
+class _TabBody extends StatelessWidget {
+  const _TabBody();
 
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: currentIndex,
-        backgroundColor: Colors.blue,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        iconSize: 30,
+  static const List<Widget> screens = [
+    Screen1(),
+    Screen2(),
+    Screen3(),
+    Screen4(),
+  ];
 
-        onTap: (int index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
+  @override
+  Widget build(BuildContext context) {
+    final int currentIndex = context.select<TabModel, int>(
+      (model) => model.currentIndex,
+    );
 
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.alarm), label: 'Alarm'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.business),
-            label: 'Business',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.school), label: 'School'),
-        ],
-      ),
+    return IndexedStack(index: currentIndex, children: screens);
+  }
+}
+
+class _TabNavBar extends StatelessWidget {
+  const _TabNavBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final int currentIndex = context.select<TabModel, int>(
+      (model) => model.currentIndex,
+    );
+
+    return BottomNavigationBar(
+      type: BottomNavigationBarType.fixed,
+      currentIndex: currentIndex,
+      backgroundColor: Colors.blue,
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white70,
+      iconSize: 30,
+      onTap: (int index) => context.read<TabModel>().select(index),
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.alarm), label: 'Alarm'),
+        BottomNavigationBarItem(icon: Icon(Icons.business), label: 'Business'),
+        BottomNavigationBarItem(icon: Icon(Icons.school), label: 'School'),
+      ],
     );
   }
 }
